@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # Define constants
 VDV_ANNUAL_SALARY = 36000  # Annual salary per VDV
 
-# Revised function to adjust VDVs based on specified logic
+# Function to adjust VDVs based on the specified logic
 def adjust_vdvs(count):
     if count <= 1:
         return 1  # If VDVs are <= 1, keep 1 VDV
@@ -21,6 +21,10 @@ def adjust_vdvs(count):
 def apply_vdv_adjustment(df):
     df['Adjusted VDVs'] = df['No of VDVs'].apply(adjust_vdvs)  # Create Adjusted VDVs column
     return df
+
+# Count the single village clusters (where 'Number of Villages' is 1)
+def count_single_village_clusters(df):
+    return (df['Number of Villages'] == 1).sum()
 
 # Load datasets for VDV analysis
 def load_vdv_data():
@@ -48,6 +52,10 @@ def run_vdv_analysis():
     total_expenses_new = calculate_total_salaries(new_clusters_df, 'No of VDVs')  # New clusters
     total_expenses_old = calculate_total_salaries(old_clusters_df, 'Adjusted VDVs')  # Old clusters
 
+    # Count single village clusters
+    single_village_new = count_single_village_clusters(new_clusters_df)
+    single_village_old = count_single_village_clusters(old_clusters_df)
+
     # Streamlit app layout
     st.title('VDV Cluster Analysis & Expense Overview (With Adjusted VDVs)')
 
@@ -70,8 +78,9 @@ def run_vdv_analysis():
 
     # Summary table
     summary_data = {
-        'Metric': ['New Clusters (VDVs)', 'Old Clusters (Adjusted VDVs)', 'Total Expenses New', 'Total Expenses Old'],
-        'Values': [new_vdvs, old_adjusted_vdvs, total_expenses_new, total_expenses_old]
+        'Metric': ['New Clusters (VDVs)', 'Old Clusters (Adjusted VDVs)', 'Total Expenses New', 'Total Expenses Old',
+                   'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
+        'Values': [new_vdvs, old_adjusted_vdvs, total_expenses_new, total_expenses_old, single_village_new, single_village_old]
     }
     summary_df = pd.DataFrame(summary_data)
     
@@ -174,69 +183,37 @@ def run_travel_allowance_analysis():
     st.subheader("New Clusters Travel Allowances")
     st.write(new_clusters)
 
-    # Group by district and calculate the total travel allowances per district
-    old_district_summary = old_clusters.groupby('District')['Annual Travel Cost'].sum().reset_index()
-    new_district_summary = new_clusters.groupby('District')['Annual Travel Cost'].sum().reset_index()
+    # Compare the total annual travel cost
+    old_total_cost = old_clusters['Annual Travel Cost'].sum()
+    new_total_cost = new_clusters['Annual Travel Cost'].sum()
 
-    # Merging for comparison
-    comparison = old_district_summary.merge(new_district_summary, on='District', suffixes=('_Old', '_New'))
+    st.subheader("Total Annual Travel Cost Comparison")
+    st.write(f"Total Annual Travel Cost for Old Clusters: ₹{old_total_cost:,.2f}")
+    st.write(f"Total Annual Travel Cost for New Clusters: ₹{new_total_cost:,.2f}")
 
-    # Plotting the comparison of annual travel costs
-    fig_bar = px.bar(comparison, x='District', y=['Annual Travel Cost_Old', 'Annual Travel Cost_New'], 
-                     barmode='group', title='Annual Travel Cost Comparison by District',
-                     labels={'value': 'Annual Travel Cost', 'District': 'District'})
-    st.plotly_chart(fig_bar)
+    # Add a plot for comparison
+    fig = go.Figure(data=[
+        go.Bar(name='Old Clusters', x=old_clusters['District'], y=old_clusters['Annual Travel Cost']),
+        go.Bar(name='New Clusters', x=new_clusters['District'], y=new_clusters['Annual Travel Cost'])
+    ])
+    fig.update_layout(barmode='group', title="Annual Travel Cost Comparison by District",
+                      xaxis_title="District", yaxis_title="Annual Travel Cost (₹)")
+    st.plotly_chart(fig)
 
-    # Calculate the overall total cost for old and new clusters
-    total_old_cost = old_clusters['Annual Travel Cost'].sum()
-    total_new_cost = new_clusters['Annual Travel Cost'].sum()
+    # Add footer
+    st.markdown("---")
+    st.write("© 2024 ResGov. All Rights Reserved.")
 
-    # Display overall total costs
-    st.subheader("Overall Total Annual Travel Cost")
-    st.write(f"Total Cost for Old Clusters: ₹{total_old_cost:,.2f}")
-    st.write(f"Total Cost for New Clusters: ₹{total_new_cost:,.2f}")
+# Main function to run the appropriate dashboard based on selection
+def main():
+    st.sidebar.title("VDV & Travel Allowance Analysis")
 
-    # Pie chart to show the proportion of total cost for old and new clusters
-    st.subheader("Proportion of Total Annual Travel Cost (Old vs New Clusters)")
-    fig_pie = px.pie(names=['Old Clusters', 'New Clusters'], values=[total_old_cost, total_new_cost],
-                     title='Proportion of Total Annual Travel Cost')
-    st.plotly_chart(fig_pie)
+    app_mode = st.sidebar.selectbox("Choose the analysis", ["VDV Analysis", "Travel Allowance Analysis"])
 
-    # Line chart for trends in total cost per district
-    st.subheader("Trend Analysis of Annual Travel Cost by District")
-    fig_line = px.line(comparison, x='District', y=['Annual Travel Cost_Old', 'Annual Travel Cost_New'], 
-                       title='Trend of Annual Travel Cost (Old vs New Clusters)',
-                       labels={'value': 'Annual Travel Cost', 'District': 'District'})
-
-    # Heatmap of travel cost differences between old and new clusters
-    st.subheader("Heatmap of Travel Allowance Difference")
-    comparison['Allowance Difference'] = comparison['Annual Travel Cost_New'] - comparison['Annual Travel Cost_Old']
-
-    fig_heatmap = go.Figure(data=go.Heatmap(
-            z=[comparison['Allowance Difference']],
-            x=comparison['District'],
-            y=['Allowance Difference'],
-            colorscale='Viridis',
-            hoverongaps=False
-    ))
-
-    fig_heatmap.update_layout(title='Heatmap of Travel Allowance Difference (New vs Old)', 
-                              xaxis_title='District', 
-                              yaxis_title='Metric')
-
-    st.plotly_chart(fig_line)
-    st.plotly_chart(fig_heatmap)
-
-# Main function to run the Streamlit app
-def run():
-    st.set_page_config(page_title="VDV Cluster Analysis", layout="wide")  # Set page config here
-    st.sidebar.title("Navigation")
-    app_selection = st.sidebar.radio("Go to", ("VDV Analysis", "Travel Allowance Analysis"))
-
-    if app_selection == "VDV Analysis":
+    if app_mode == "VDV Analysis":
         run_vdv_analysis()
-    else:
+    elif app_mode == "Travel Allowance Analysis":
         run_travel_allowance_analysis()
 
 if __name__ == "__main__":
-    run()
+    main()
