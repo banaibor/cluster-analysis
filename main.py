@@ -82,8 +82,8 @@ def run_vdv_analysis():
 
     # Summary table
     summary_data = {
-        'Metric': ['New Clusters (VDVs)', 'Old Clusters (Adjusted VDVs)', 'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
-        'Values': [new_vdvs, old_adjusted_vdvs,
+        'Metric': ['Total Expenses New', 'Total Expenses Old', 'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
+        'Values': [total_expenses_new, total_expenses_old,
                    single_village_counts_new.get(selected_district, 0),
                    single_village_counts_old.get(selected_district, 0)]
     }
