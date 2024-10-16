@@ -22,9 +22,13 @@ def apply_vdv_adjustment(df):
     df['Adjusted VDVs'] = df['No of VDVs'].apply(adjust_vdvs)  # Create Adjusted VDVs column
     return df
 
-# Count the single village clusters (where 'Number of Villages' is 1)
-def count_single_village_clusters(df):
-    return (df['Number of Villages'] == 1).sum()
+# Count the single village clusters (where 'Number of Villages' is 1) district-wise
+def count_single_village_clusters_district_wise(df):
+    return df[df['Number of Villages'] == 1].groupby('District').size()
+
+# Get detailed single village cluster data for a specific district
+def get_single_village_clusters_details(df, district):
+    return df[(df['District'] == district) & (df['Number of Villages'] == 1)]
 
 # Load datasets for VDV analysis
 def load_vdv_data():
@@ -52,9 +56,9 @@ def run_vdv_analysis():
     total_expenses_new = calculate_total_salaries(new_clusters_df, 'No of VDVs')  # New clusters
     total_expenses_old = calculate_total_salaries(old_clusters_df, 'Adjusted VDVs')  # Old clusters
 
-    # Count single village clusters
-    single_village_new = count_single_village_clusters(new_clusters_df)
-    single_village_old = count_single_village_clusters(old_clusters_df)
+    # Count single village clusters district-wise
+    single_village_counts_new = count_single_village_clusters_district_wise(new_clusters_df)
+    single_village_counts_old = count_single_village_clusters_district_wise(old_clusters_df)
 
     # Streamlit app layout
     st.title('VDV Cluster Analysis & Expense Overview (With Adjusted VDVs)')
@@ -78,14 +82,34 @@ def run_vdv_analysis():
 
     # Summary table
     summary_data = {
-        'Metric': ['New Clusters (VDVs)', 'Old Clusters (Adjusted VDVs)', 'Total Expenses New', 'Total Expenses Old',
-                   'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
-        'Values': [new_vdvs, old_adjusted_vdvs, total_expenses_new, total_expenses_old, single_village_new, single_village_old]
+        'Metric': ['New Clusters (VDVs)', 'Old Clusters (Adjusted VDVs)', 'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
+        'Values': [new_vdvs, old_adjusted_vdvs,
+                   single_village_counts_new.get(selected_district, 0),
+                   single_village_counts_old.get(selected_district, 0)]
     }
     summary_df = pd.DataFrame(summary_data)
     
     st.subheader("Summary Table")
     st.dataframe(summary_df)
+
+    # Display detailed single village clusters for new and old clusters
+    st.subheader("Single Village Clusters Details")
+
+    # Get details for single village clusters
+    single_village_details_new = get_single_village_clusters_details(new_clusters_df, selected_district)
+    single_village_details_old = get_single_village_clusters_details(old_clusters_df, selected_district)
+
+    if not single_village_details_new.empty:
+        st.write(f"**Single Village Clusters in New Clusters ({selected_district})**")
+        st.dataframe(single_village_details_new)
+    else:
+        st.write(f"No single village clusters found in New Clusters for {selected_district}.")
+
+    if not single_village_details_old.empty:
+        st.write(f"**Single Village Clusters in Old Clusters ({selected_district})**")
+        st.dataframe(single_village_details_old)
+    else:
+        st.write(f"No single village clusters found in Old Clusters for {selected_district}.")
 
     # Capacity analysis for old clusters
     st.subheader(f'Capacity Analysis of Old Clusters (Adjusted VDVs) in {selected_district}')
