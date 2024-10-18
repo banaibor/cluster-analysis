@@ -6,6 +6,18 @@ import plotly.graph_objects as go
 # Define constants
 VDV_ANNUAL_SALARY = 36000  # Annual salary per VDV
 
+# Function to format currency values
+def format_currency(amount):
+    """Formats the currency in INR, lakhs, or crores."""
+    if amount >= 1_00_00_000:  # 1 Crore
+        return f"₹{amount/1_00_00_000:.2f} Crores"
+    elif amount >= 1_00_000:  # 1 Lakh
+        return f"₹{amount/1_00_000:.2f} Lakhs"
+    elif amount >= 1_000:  # 1 Thousand
+        return f"₹{amount/1_000:.2f} Thousands"
+    else:
+        return f"₹{amount:.2f}"  # Less than 1000
+
 # Function to adjust VDVs based on the specified logic
 def adjust_vdvs(count):
     if count <= 1:
@@ -88,8 +100,8 @@ def run_vdv_analysis():
     summary_data = {
         'Metric': ['Total Expenses New (District)', 'Total Expenses Old (District)', 
                    'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
-        'Values': [f'₹{total_expenses_new_district:,.2f}', 
-                   f'₹{total_expenses_old_district:,.2f}', 
+        'Values': [format_currency(total_expenses_new_district), 
+                   format_currency(total_expenses_old_district), 
                    single_village_counts_new.get(selected_district, 0), 
                    single_village_counts_old.get(selected_district, 0)]
     }
