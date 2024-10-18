@@ -164,8 +164,8 @@ def run_vdv_analysis():
 
     # Trade-off analysis: Total expenses comparison for all districts
     st.subheader('Total Expenses for All Districts (New vs Old Clusters with Adjusted VDVs)')
-    st.write(f'Total Annual Expenses for New Clusters: {format_currency(total_expenses_new)}')
-    st.write(f'Total Annual Expenses for Old Clusters (Adjusted VDVs): {format_currency(total_expenses_old)}')
+    st.write(f'Total Annual Expenses for New Clusters: ₹{format_currency(total_expenses_new):,.2f}')
+    st.write(f'Total Annual Expenses for Old Clusters (Adjusted VDVs): ₹{format_currency(total_expenses_old):,.2f}')
 
     # Trade-off analysis text
     if total_expenses_new < total_expenses_old:
@@ -176,9 +176,9 @@ def run_vdv_analysis():
     # Savings or additional costs
     expense_difference = total_expenses_old - total_expenses_new
     if expense_difference > 0:
-        st.write(f"By moving to the new clusters, there's a potential saving of {format_currency(expense_difference)} annually.")
+        st.write(f"By moving to the new clusters, there's a potential saving of ₹{format_currency(expense_difference):,.2f} annually.")
     else:
-        st.write(f"By moving to the new clusters, there's an additional cost of {format_currency(-expense_difference)} annually.")
+        st.write(f"By moving to the new clusters, there's an additional cost of ₹{-expense_difference:,.2f} annually.")
 
     # Add footer
     st.markdown("---")
