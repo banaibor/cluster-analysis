@@ -56,6 +56,10 @@ def run_vdv_analysis():
     total_expenses_new = calculate_total_salaries(new_clusters_df, 'No of VDVs')  # New clusters
     total_expenses_old = calculate_total_salaries(old_clusters_df, 'Adjusted VDVs')  # Old clusters
 
+    # Calculate district-specific expenses for the selected district
+    total_expenses_new_district = calculate_total_salaries(filtered_new_df, 'No of VDVs')
+    total_expenses_old_district = calculate_total_salaries(filtered_old_df, 'Adjusted VDVs')
+
     # Count single village clusters district-wise
     single_village_counts_new = count_single_village_clusters_district_wise(new_clusters_df)
     single_village_counts_old = count_single_village_clusters_district_wise(old_clusters_df)
