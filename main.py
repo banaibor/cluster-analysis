@@ -80,12 +80,13 @@ def run_vdv_analysis():
     st.write(f"**New Clusters (VDVs)**: {new_vdvs}")
     st.write(f"**Old Clusters (Adjusted VDVs)**: {old_adjusted_vdvs}")
 
-    # Summary table
+    # Summary table with district-wise expenses
     summary_data = {
-        'Metric': ['Total Expenses New', 'Total Expenses Old', 'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
-        'Values': [total_expenses_new, total_expenses_old,
-                   single_village_counts_new.get(selected_district, 0),
-                   single_village_counts_old.get(selected_district, 0)]
+        'Metric': ['Total Expenses New (District)', 'Total Expenses Old (District)', 
+                'Single Village Clusters (New)', 'Single Village Clusters (Old)'],
+        'Values': [total_expenses_new_district, total_expenses_old_district, 
+                single_village_counts_new.get(selected_district, 0), 
+                single_village_counts_old.get(selected_district, 0)]
     }
     summary_df = pd.DataFrame(summary_data)
     
@@ -133,6 +134,10 @@ def run_vdv_analysis():
     st.plotly_chart(fig_distribution)
 
     # 1-Year Expenses Analysis
+    total_expenses_new_district = calculate_total_salaries(filtered_new_df, 'No of VDVs')
+    total_expenses_old_district = calculate_total_salaries(filtered_old_df, 'Adjusted VDVs')
+
+    # Calculate district-specific expenses for the selected district
     total_expenses_new_district = calculate_total_salaries(filtered_new_df, 'No of VDVs')
     total_expenses_old_district = calculate_total_salaries(filtered_old_df, 'Adjusted VDVs')
 
