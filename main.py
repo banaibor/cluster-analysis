@@ -162,24 +162,6 @@ def run_vdv_analysis():
     st.write(f'Total Annual Expenses for New Clusters: {format_currency(total_expenses_new_district)}')
     st.write(f'Total Annual Expenses for Old Clusters (Adjusted VDVs): {format_currency(total_expenses_old_district)}')
 
-    # Trade-off analysis: Total expenses comparison for all districts
-    st.subheader('Total Expenses for All Districts (New vs Old Clusters with Adjusted VDVs)')
-    st.write(f'Total Annual Expenses for New Clusters: {format_currency(total_expenses_new)}')
-    st.write(f'Total Annual Expenses for Old Clusters (Adjusted VDVs): {format_currency(total_expenses_old)}')
-
-    # Trade-off analysis text
-    if total_expenses_new < total_expenses_old:
-        st.write("**Observation:** The new clusters have a lower overall expense compared to the old clusters.")
-    else:
-        st.write("**Observation:** The new clusters have a higher overall expense compared to the old clusters.")
-
-    # Savings or additional costs
-    expense_difference = total_expenses_old - total_expenses_new
-    if expense_difference > 0:
-        st.write(f"By moving to the new clusters, there's a potential saving of {format_currency(expense_difference)} annually.")
-    else:
-        st.write(f"By moving to the new clusters, there's an additional cost of {format_currency(-expense_difference)} annually.")
-
     # Add footer
     st.markdown("---")
     st.write("© 2024 ResGov. All Rights Reserved.")
